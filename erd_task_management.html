@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Task Management — Entity Relationship Diagram</title>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0d0f12;
+    --surface: #13161b;
+    --surface2: #1a1e25;
+    --border: rgba(255,255,255,0.07);
+    --border2: rgba(255,255,255,0.12);
+    --accent: #4f8ef7;
+    --accent2: #7ec8a4;
+    --text: #e2e6ed;
+    --text2: #7a8494;
+    --text3: #4a5264;
+    --mono: 'DM Mono', monospace;
+    --sans: 'DM Sans', sans-serif;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  header {
+    padding: 2.5rem 3rem 2rem;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+
+  .header-left { display: flex; flex-direction: column; gap: 0.4rem; }
+
+  .label {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 400;
+  }
+
+  h1 {
+    font-family: var(--sans);
+    font-size: clamp(1.4rem, 3vw, 2rem);
+    font-weight: 300;
+    letter-spacing: -0.03em;
+    color: var(--text);
+  }
+
+  h1 span { font-weight: 500; }
+
+  .meta {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text3);
+    display: flex;
+    gap: 1.5rem;
+  }
+
+  .meta span { display: flex; align-items: center; gap: 0.4rem; }
+
+  .dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--accent2);
+    display: inline-block;
+  }
+
+  main {
+    flex: 1;
+    padding: 3rem;
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+  }
+
+  .legend {
+    display: flex;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+  }
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text2);
+  }
+
+  .legend-badge {
+    padding: 2px 8px;
+    border-radius: 3px;
+    font-size: 10px;
+    letter-spacing: 0.05em;
+    font-weight: 500;
+  }
+
+  .badge-entity { background: rgba(79,142,247,0.12); color: #4f8ef7; border: 1px solid rgba(79,142,247,0.25); }
+  .badge-base   { background: rgba(126,200,164,0.12); color: #7ec8a4; border: 1px solid rgba(126,200,164,0.25); }
+  .badge-rel    { background: rgba(255,255,255,0.04); color: var(--text2); border: 1px solid var(--border2); }
+
+  .diagram-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 2.5rem;
+    flex: 1;
+    overflow: auto;
+  }
+
+  .mermaid {
+    display: flex;
+    justify-content: center;
+  }
+
+  .mermaid svg {
+    max-width: 100%;
+    height: auto;
+  }
+
+  footer {
+    padding: 1.5rem 3rem;
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  footer span {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--text3);
+    letter-spacing: 0.05em;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-left">
+    <div class="label">Entity Relationship Diagram</div>
+    <h1>Task <span>Management</span> Schema</h1>
+  </div>
+  <div class="meta">
+    <span><span class="dot"></span>7 entities</span>
+    <span>6 relationships</span>
+    <span>JPA / Spring Data</span>
+  </div>
+</header>
+
+<main>
+  <div class="legend">
+    <div class="legend-item"><span class="legend-badge badge-entity">ENTITY</span> Domain model</div>
+    <div class="legend-item"><span class="legend-badge badge-base">BASE</span> Shared base class</div>
+    <div class="legend-item"><span class="legend-badge badge-rel">||--o{</span> One-to-many</div>
+    <div class="legend-item"><span class="legend-badge badge-rel">||--||</span> One-to-one (inheritance)</div>
+  </div>
+
+  <div class="diagram-card">
+    <div class="mermaid">
+erDiagram
+  BaseEntity {
+    Long id PK
+    LocalDateTime createdAt
+    LocalDateTime updatedAt
+  }
+  User {
+    boolean active
+    String email
+    String name
+    String password
+    UserRole role
+  }
+  Task {
+    String description
+    LocalDateTime dueDate
+    TaskPriority priority
+    TaskStatus status
+    String title
+  }
+  SubTask {
+  }
+  Comment {
+    String content
+  }
+
+  BaseEntity ||--|| User : "extends"
+  BaseEntity ||--|| Task : "extends"
+  BaseEntity ||--|| Comment : "extends"
+  Task ||--o{ SubTask : "extends / parent"
+  User ||--o{ Task : "assigned to"
+  Task ||--o{ Comment : "has"
+  User ||--o{ Comment : "authored by"
+    </div>
+  </div>
+</main>
+
+<footer>
+  <span>Generated from classDiagram source</span>
+  <span>mermaid.js erDiagram</span>
+</footer>
+
+<script>
+  mermaid.initialize({
+    startOnLoad: true,
+    theme: 'base',
+    fontFamily: '"DM Mono", monospace',
+    themeVariables: {
+      darkMode: true,
+      fontSize: '13px',
+      fontFamily: '"DM Mono", monospace',
+      primaryColor: '#1a1e25',
+      primaryBorderColor: 'rgba(255,255,255,0.12)',
+      primaryTextColor: '#e2e6ed',
+      lineColor: '#4a5264',
+      attributeBackgroundColorEven: '#13161b',
+      attributeBackgroundColorOdd: '#1a1e25',
+    }
+  });
+</script>
+</body>
+</html>
