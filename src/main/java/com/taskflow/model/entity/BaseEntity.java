@@ -5,7 +5,7 @@ import lombok.Data;
 import java.time.LocalDateTime;
 
 @Data
-@MappedSuperclass
+@MappedSuperclass // Class cha chứa các field chung cho nhiều entity, nhưng không tạo bảng trong db
 public abstract class BaseEntity {
 
     @Id

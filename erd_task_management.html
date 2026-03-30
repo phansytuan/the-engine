@@ -11,16 +11,16 @@
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
   :root {
-    --bg: #0d0f12;
-    --surface: #13161b;
-    --surface2: #1a1e25;
-    --border: rgba(255,255,255,0.07);
-    --border2: rgba(255,255,255,0.12);
-    --accent: #4f8ef7;
-    --accent2: #7ec8a4;
-    --text: #e2e6ed;
-    --text2: #7a8494;
-    --text3: #4a5264;
+    --bg: #f5f6f8;
+    --surface: #ffffff;
+    --surface2: #eef0f3;
+    --border: rgba(0,0,0,0.08);
+    --border2: rgba(0,0,0,0.14);
+    --accent: #2563eb;
+    --accent2: #16a36a;
+    --text: #1a1d23;
+    --text2: #4a5264;
+    --text3: #8a93a8;
     --mono: 'DM Mono', monospace;
     --sans: 'DM Sans', sans-serif;
   }
@@ -112,9 +112,9 @@
     font-weight: 500;
   }
 
-  .badge-entity { background: rgba(79,142,247,0.12); color: #4f8ef7; border: 1px solid rgba(79,142,247,0.25); }
-  .badge-base   { background: rgba(126,200,164,0.12); color: #7ec8a4; border: 1px solid rgba(126,200,164,0.25); }
-  .badge-rel    { background: rgba(255,255,255,0.04); color: var(--text2); border: 1px solid var(--border2); }
+  .badge-entity { background: rgba(37,99,235,0.08); color: #1d4ed8; border: 1px solid rgba(37,99,235,0.2); }
+  .badge-base   { background: rgba(22,163,106,0.08); color: #0f7a51; border: 1px solid rgba(22,163,106,0.2); }
+  .badge-rel    { background: var(--surface2); color: var(--text2); border: 1px solid var(--border2); }
 
   .diagram-card {
     background: var(--surface);
@@ -223,15 +223,15 @@ erDiagram
     theme: 'base',
     fontFamily: '"DM Mono", monospace',
     themeVariables: {
-      darkMode: true,
-      fontSize: '13px',
+      darkMode: false,
+      fontSize: '14px',
       fontFamily: '"DM Mono", monospace',
-      primaryColor: '#1a1e25',
-      primaryBorderColor: 'rgba(255,255,255,0.12)',
-      primaryTextColor: '#e2e6ed',
-      lineColor: '#4a5264',
-      attributeBackgroundColorEven: '#13161b',
-      attributeBackgroundColorOdd: '#1a1e25',
+      primaryColor: '#eef0f3',
+      primaryBorderColor: 'rgba(0,0,0,0.14)',
+      primaryTextColor: '#1a1d23',
+      lineColor: '#8a93a8',
+      attributeBackgroundColorEven: '#ffffff',
+      attributeBackgroundColorOdd: '#f5f6f8',
     }
   });
 </script>

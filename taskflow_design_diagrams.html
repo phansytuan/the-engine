@@ -1,0 +1,901 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TaskFlow · Software Design Diagrams</title>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:ital,wght@0,300;0,400;0,500;1,400&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg:          #f5f7fa;
+      --surface:     #ffffff;
+      --surface2:    #eef1f6;
+      --border:      #d0d7e3;
+      --border-dim:  #e2e7f0;
+      --text:        #1a2033;
+      --muted:       #5a6782;
+      --accent:      #c07000;
+      --accent-bg:   rgba(192,112,0,.08);
+      --blue:        #1a6bbf;
+      --green:       #1a8a3a;
+      --red:         #c0392b;
+      --radius:      10px;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'IBM Plex Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      font-size: 15px;
+      line-height: 1.6;
+    }
+
+    /* ── Header ──────────────────────────────────────────────── */
+    .site-header {
+      padding: 24px 40px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 0;
+    }
+
+    .header-brand {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--accent);
+      letter-spacing: -0.01em;
+    }
+
+    .header-sep {
+      width: 1px;
+      height: 18px;
+      background: var(--border);
+      margin: 0 18px;
+    }
+
+    .header-meta {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .header-badge {
+      margin-left: auto;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 11px;
+      color: var(--green);
+      background: rgba(26,138,58,.1);
+      border: 1px solid rgba(26,138,58,.3);
+      padding: 3px 10px;
+      border-radius: 20px;
+    }
+
+    /* ── Tab nav ─────────────────────────────────────────────── */
+    .tab-nav {
+      display: flex;
+      gap: 1px;
+      padding: 0 40px;
+      border-bottom: 1px solid var(--border);
+      overflow-x: auto;
+    }
+
+    .tab-btn {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--muted);
+      background: none;
+      border: 1px solid transparent;
+      border-bottom: none;
+      padding: 12px 20px;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: color 0.15s;
+      position: relative;
+      top: 1px;
+      border-radius: 6px 6px 0 0;
+    }
+
+    .tab-btn:hover { color: var(--text); }
+
+    .tab-btn.active {
+      color: var(--accent);
+      background: var(--surface);
+      border-color: var(--border);
+      border-bottom-color: var(--surface);
+    }
+
+    .tab-num {
+      font-size: 10px;
+      color: var(--muted);
+      margin-right: 7px;
+      opacity: .7;
+    }
+
+    .tab-btn.active .tab-num { color: var(--accent); }
+
+    /* ── Content ─────────────────────────────────────────────── */
+    .page-content {
+      padding: 36px 40px 80px;
+      max-width: 1280px;
+    }
+
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    /* ── Panel header ────────────────────────────────────────── */
+    .panel-header {
+      margin-bottom: 28px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid var(--border-dim);
+    }
+
+    .panel-header h2 {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 22px;
+      font-weight: 600;
+      color: var(--text);
+      letter-spacing: -0.03em;
+      margin-bottom: 8px;
+    }
+
+    .panel-header p {
+      font-size: 14px;
+      color: var(--muted);
+      max-width: 680px;
+    }
+
+    /* ── Diagram card ────────────────────────────────────────── */
+    .diagram-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      margin-bottom: 24px;
+    }
+
+    .diagram-card-header {
+      padding: 14px 22px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .diagram-card-header h3 {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 11.5px;
+      font-weight: 500;
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: .08em;
+    }
+
+    .dot {
+      width: 7px;
+      height: 7px;
+      background: var(--accent);
+      border-radius: 2px;
+      flex-shrink: 0;
+    }
+
+    .diagram-body {
+      padding: 28px 24px;
+      overflow-x: auto;
+      background: var(--bg);
+    }
+
+    .diagram-container {
+      min-height: 80px;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+    }
+
+    .diagram-container svg { max-width: 100%; height: auto; }
+
+    .loading {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 12px;
+      color: var(--muted);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 20px 0;
+    }
+
+    .spinner {
+      width: 14px; height: 14px;
+      border: 2px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin .75s linear infinite;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .render-error {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 12px;
+      color: var(--red);
+      background: rgba(192,57,43,.07);
+      border: 1px solid rgba(192,57,43,.25);
+      border-radius: 6px;
+      padding: 12px 16px;
+      white-space: pre-wrap;
+    }
+
+    /* ── Two-column grid ─────────────────────────────────────── */
+    .two-col {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+
+    @media (max-width: 900px) { .two-col { grid-template-columns: 1fr; } }
+
+    /* ── Mermaid output tweaks ───────────────────────────────── */
+    .diagram-container .mermaid svg,
+    .diagram-container svg {
+      background: transparent !important;
+    }
+  </style>
+</head>
+<body>
+
+<header class="site-header">
+  <span class="header-brand">TaskFlow</span>
+  <div class="header-sep"></div>
+  <span class="header-meta">Software Design Diagrams</span>
+  <span class="header-badge">Spring Boot 3.2 · Java 17</span>
+</header>
+
+<nav class="tab-nav">
+  <button class="tab-btn active" onclick="switchTab('class',this)">
+    <span class="tab-num">01</span>Class
+  </button>
+  <button class="tab-btn" onclick="switchTab('seq',this)">
+    <span class="tab-num">02</span>Sequence
+  </button>
+  <button class="tab-btn" onclick="switchTab('usecase',this)">
+    <span class="tab-num">03</span>Use Case
+  </button>
+  <button class="tab-btn" onclick="switchTab('component',this)">
+    <span class="tab-num">04</span>Component
+  </button>
+  <button class="tab-btn" onclick="switchTab('deployment',this)">
+    <span class="tab-num">05</span>Deployment
+  </button>
+</nav>
+
+<main class="page-content">
+
+  <!-- ①  CLASS DIAGRAM ─────────────────────────────────────── -->
+  <section class="tab-panel active" id="tab-class">
+    <div class="panel-header">
+      <h2>Class Diagram</h2>
+      <p>Entities, enums, services and repositories — showing inheritance, composition, association and dependency relationships derived directly from the source code.</p>
+    </div>
+    <div class="diagram-card">
+      <div class="diagram-card-header">
+        <span class="dot"></span>
+        <h3>Domain model + application layer</h3>
+      </div>
+      <div class="diagram-body">
+        <div class="diagram-container" id="diagram-class">
+          <div class="loading"><div class="spinner"></div>Rendering diagram…</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ②  SEQUENCE DIAGRAMS ────────────────────────────────── -->
+  <section class="tab-panel" id="tab-seq">
+    <div class="panel-header">
+      <h2>Sequence Diagrams</h2>
+      <p>End-to-end request flows traced through Controller → Service → Repository → Database for the two most critical API operations. Async branches and exception paths are included.</p>
+    </div>
+    <div class="two-col">
+      <div class="diagram-card">
+        <div class="diagram-card-header">
+          <span class="dot"></span>
+          <h3>POST /api/tasks — create task</h3>
+        </div>
+        <div class="diagram-body">
+          <div class="diagram-container" id="diagram-seq1">
+            <div class="loading"><div class="spinner"></div>Rendering diagram…</div>
+          </div>
+        </div>
+      </div>
+      <div class="diagram-card">
+        <div class="diagram-card-header">
+          <span class="dot"></span>
+          <h3>PATCH /api/tasks/{id}/status — update status</h3>
+        </div>
+        <div class="diagram-body">
+          <div class="diagram-container" id="diagram-seq2">
+            <div class="loading"><div class="spinner"></div>Rendering diagram…</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ③  USE CASE DIAGRAM ─────────────────────────────────── -->
+  <section class="tab-panel" id="tab-usecase">
+    <div class="panel-header">
+      <h2>Use Case Diagram</h2>
+      <p>System actors (Developer, Manager/Admin, System) and the operations they are authorized to perform, grouped by functional area.</p>
+    </div>
+    <div class="diagram-card">
+      <div class="diagram-card-header">
+        <span class="dot"></span>
+        <h3>Actors + use cases</h3>
+      </div>
+      <div class="diagram-body">
+        <div class="diagram-container" id="diagram-usecase">
+          <div class="loading"><div class="spinner"></div>Rendering diagram…</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ④  COMPONENT DIAGRAM ────────────────────────────────── -->
+  <section class="tab-panel" id="tab-component">
+    <div class="panel-header">
+      <h2>Component Diagram</h2>
+      <p>Major Spring Boot modules and their dependencies — controller layer, service layer, repository layer, cross-cutting concerns and the data store.</p>
+    </div>
+    <div class="diagram-card">
+      <div class="diagram-card-header">
+        <span class="dot"></span>
+        <h3>Spring Boot application components</h3>
+      </div>
+      <div class="diagram-body">
+        <div class="diagram-container" id="diagram-component">
+          <div class="loading"><div class="spinner"></div>Rendering diagram…</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ⑤  DEPLOYMENT DIAGRAM ──────────────────────────────── -->
+  <section class="tab-panel" id="tab-deployment">
+    <div class="panel-header">
+      <h2>Deployment Diagram</h2>
+      <p>Docker Compose infrastructure — container definitions, exposed ports, environment injection, JDBC connectivity, and observability endpoint.</p>
+    </div>
+    <div class="diagram-card">
+      <div class="diagram-card-header">
+        <span class="dot"></span>
+        <h3>Docker Compose environment</h3>
+      </div>
+      <div class="diagram-body">
+        <div class="diagram-container" id="diagram-deployment">
+          <div class="loading"><div class="spinner"></div>Rendering diagram…</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<!-- Tab switching -->
+<script>
+function switchTab(id, btn) {
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + id).classList.add('active');
+  btn.classList.add('active');
+}
+</script>
+
+<!-- Mermaid rendering -->
+<script type="module">
+import mermaid from 'https://esm.sh/mermaid@11/dist/mermaid.esm.min.mjs';
+await document.fonts.ready;
+
+mermaid.initialize({
+  startOnLoad: false,
+  theme: 'base',
+  fontFamily: '"IBM Plex Mono", monospace',
+  themeVariables: {
+    darkMode: false,
+    background:             '#f5f7fa',
+    mainBkg:                '#dce8f8',
+    nodeBkg:                '#e8f0fb',
+    nodeBorder:             '#5a8ec0',
+    nodeTextColor:          '#1a2033',
+    lineColor:              '#2c6fad',
+    primaryColor:           '#d6e8f8',
+    primaryTextColor:       '#0f1e40',
+    primaryBorderColor:     '#3a78be',
+    secondaryColor:         '#d6f0e4',
+    secondaryTextColor:     '#0f3020',
+    secondaryBorderColor:   '#2a8a50',
+    tertiaryColor:          '#ede0f8',
+    tertiaryTextColor:      '#2a1040',
+    tertiaryBorderColor:    '#7a4ab0',
+    noteBkgColor:           '#fffbe6',
+    noteTextColor:          '#4a3800',
+    noteBorderColor:        '#d4aa00',
+    activationBkgColor:     '#cde4f8',
+    activationBorderColor:  '#2c6fad',
+    sequenceNumberColor:    '#c07000',
+    labelBoxBkgColor:       '#eef1f8',
+    labelBoxBorderColor:    '#c0c8d8',
+    labelTextColor:         '#1a2033',
+    loopTextColor:          '#3a4a6a',
+    altSectionBkgColor:     '#f0f4fc',
+    signalColor:            '#2c6fad',
+    signalTextColor:        '#1a2033',
+    actorBkg:               '#d6e8f8',
+    actorBorder:            '#3a78be',
+    actorTextColor:         '#0f1e40',
+    actorLineColor:         '#7a9ac0',
+    classText:              '#1a2033',
+    fillType0:              '#d6e8f8',
+    fillType1:              '#d6f0e4',
+    fillType2:              '#ede0f8',
+    fillType3:              '#d8f0d8',
+    fillType4:              '#f8f0d0',
+    fillType5:              '#d0f0f0',
+    fillType6:              '#f8d8d8',
+    fillType7:              '#d8d8f8',
+    fontSize:               '13px',
+    fontFamily:             '"IBM Plex Mono", monospace',
+  }
+});
+
+async function render(id, source) {
+  const el = document.getElementById('diagram-' + id);
+  try {
+    const { svg } = await mermaid.render('m' + id, source);
+    el.innerHTML = svg;
+    const s = el.querySelector('svg');
+    if (s) {
+      s.style.background = 'transparent';
+      s.style.maxWidth = '100%';
+    }
+  } catch (err) {
+    el.innerHTML = '<pre class="render-error">Render failed: ' + err.message + '</pre>';
+    console.error('[' + id + ']', err);
+  }
+}
+
+/* ════════════════════════════════════════════════════════════════
+   1. CLASS DIAGRAM
+   ════════════════════════════════════════════════════════════════ */
+const classSrc = `classDiagram
+    direction TB
+
+    class BaseEntity {
+        <<abstract>>
+        +Long id
+        +LocalDateTime createdAt
+        +LocalDateTime updatedAt
+        #onCreate()
+        #onUpdate()
+    }
+
+    class Task {
+        +String title
+        +String description
+        +TaskStatus status
+        +TaskPriority priority
+        +LocalDateTime dueDate
+        +complete()
+        +cancel()
+        +updateStatus(TaskStatus)
+        +isOverdue() bool
+        +addComment(Comment)
+    }
+
+    class SubTask {
+        +Task parentTask
+        +complete()
+    }
+
+    class User {
+        +String email
+        +String name
+        -String password
+        +UserRole role
+        +boolean active
+        +canManageTasks() bool
+    }
+
+    class Comment {
+        +String content
+        +User author
+    }
+
+    class TaskStatus {
+        <<enumeration>>
+        TODO
+        IN_PROGRESS
+        IN_REVIEW
+        COMPLETED
+        CANCELLED
+        +isCompleted() bool
+        +canTransitionTo(TaskStatus) bool
+    }
+
+    class TaskPriority {
+        <<enumeration>>
+        LOW
+        MEDIUM
+        HIGH
+        URGENT
+        +getLevel() int
+    }
+
+    class UserRole {
+        <<enumeration>>
+        ADMIN
+        MANAGER
+        DEVELOPER
+        VIEWER
+    }
+
+    class TaskRepository {
+        <<interface>>
+        +findByStatus(TaskStatus) List~Task~
+        +findByAssigneeId(Long) List~Task~
+        +findByCreatorId(Long) List~Task~
+        +findOverdueTasks(LocalDateTime, List~TaskStatus~) List~Task~
+    }
+
+    class UserRepository {
+        <<interface>>
+        +findByEmail(String) Optional~User~
+        +existsByEmail(String) bool
+    }
+
+    class CommentRepository {
+        <<interface>>
+    }
+
+    class TaskService {
+        <<service>>
+        +getAllTasks() List~Task~
+        +createTask(Task, Long) Task
+        +updateTask(Long, Task, Long) Task
+        +updateTaskStatus(Long, TaskStatus, Long) Task
+        +assignTask(Long, Long, Long) Task
+        +addComment(Long, String, Long) Comment
+        +deleteTask(Long, Long)
+        +getOverdueTasks() List~Task~
+    }
+
+    class UserService {
+        <<service>>
+        +getAllUsers() List~User~
+        +getUserById(Long) User
+        +createUser(User) User
+        +updateUser(Long, User) User
+        +deactivateUser(Long)
+    }
+
+    class AnalyticsService {
+        <<service>>
+        +getTaskCountByStatus() Map
+        +getTaskCountByPriority() Map
+        +getCompletionRate() double
+        +getTopAssignees(int) List
+        +getDashboardSummary() Map
+    }
+
+    class NotificationService {
+        <<service>>
+        +notifyTaskAssigned(Task, User) CompletableFuture
+        +notifyTaskCompleted(Task) CompletableFuture
+        +notifyTaskOverdue(Task) CompletableFuture
+    }
+
+    class TaskCache {
+        <<util>>
+        -ConcurrentHashMap cache
+        +put(Task)
+        +get(Long) Optional~Task~
+        +evict(Long)
+        +getOrLoad(Long, Function) Task
+    }
+
+    BaseEntity <|-- Task : extends
+    BaseEntity <|-- User : extends
+    BaseEntity <|-- Comment : extends
+    Task <|-- SubTask : extends
+
+    Task "1" *-- "0..*" Comment : has
+    Task "0..*" --> "1" User : creator
+    Task "0..*" --> "0..1" User : assignee
+    Comment "0..*" --> "1" User : author
+    SubTask "0..*" --> "1" Task : parentTask
+    Task --> TaskStatus
+    Task --> TaskPriority
+    User --> UserRole
+
+    TaskService --> TaskRepository : uses
+    TaskService --> UserRepository : uses
+    TaskService --> CommentRepository : uses
+    TaskService ..> NotificationService : async notify
+    TaskService ..> TaskCache : caches
+    UserService --> UserRepository : uses
+    AnalyticsService --> TaskRepository : uses`;
+
+/* ════════════════════════════════════════════════════════════════
+   2a. SEQUENCE — POST /api/tasks
+   ════════════════════════════════════════════════════════════════ */
+const seq1Src = `sequenceDiagram
+    autonumber
+    participant C as Client
+    participant TC as TaskController
+    participant TS as TaskService
+    participant UR as UserRepository
+    participant TR as TaskRepository
+    participant NS as NotificationService
+    participant DB as PostgreSQL
+
+    C->>TC: POST /api/tasks
+    Note over C,TC: Header: X-User-Id: 1
+
+    TC->>TS: createTask(task, creatorId=1)
+
+    TS->>UR: findById(1)
+    UR->>DB: SELECT * FROM users WHERE id=1
+    DB-->>UR: User row
+    UR-->>TS: creator : User
+
+    alt assignee provided in body
+        TS->>UR: findById(assigneeId)
+        UR->>DB: SELECT * FROM users WHERE id=?
+        DB-->>UR: User row
+        UR-->>TS: assignee : User
+    end
+
+    TS->>TR: save(task)
+    TR->>DB: INSERT INTO tasks (...)
+    DB-->>TR: Task with generated id
+    TR-->>TS: savedTask
+
+    TS-->>TC: savedTask
+    TC-->>C: 201 Created
+
+    TC-)NS: notifyTaskAssigned(task, assignee)
+    Note over NS: @Async — runs on TaskFlow-Async thread pool
+    NS-->>TC: CompletableFuture (non-blocking)`;
+
+/* ════════════════════════════════════════════════════════════════
+   2b. SEQUENCE — PATCH /api/tasks/{id}/status
+   ════════════════════════════════════════════════════════════════ */
+const seq2Src = `sequenceDiagram
+    autonumber
+    participant C as Client
+    participant TC as TaskController
+    participant TS as TaskService
+    participant TR as TaskRepository
+    participant T as Task entity
+    participant NS as NotificationService
+    participant DB as PostgreSQL
+
+    C->>TC: PATCH /api/tasks/5/status?status=COMPLETED
+    Note over C,TC: Header: X-User-Id: 2
+
+    TC->>TS: updateTaskStatus(5, COMPLETED, userId=2)
+
+    TS->>TR: findById(5)
+    TR->>DB: SELECT * FROM tasks WHERE id=5
+    DB-->>TR: Task row
+    TR-->>TS: task : Task
+
+    TS->>TS: requireCanModify(task, userId=2)
+
+    alt user is not creator or assignee
+        TS-->>TC: UnauthorizedAccessException
+        TC-->>C: 403 Forbidden
+    end
+
+    TS->>T: updateStatus(COMPLETED)
+    T->>T: canTransitionTo(COMPLETED)?
+
+    alt invalid state transition
+        T-->>TS: throws IllegalStateException
+        TC-->>C: 409 Conflict
+    end
+
+    T-->>TS: status updated to COMPLETED
+
+    TS->>TR: save(task)
+    TR->>DB: UPDATE tasks SET status=COMPLETED WHERE id=5
+    DB-->>TR: Updated row
+    TR-->>TS: updatedTask
+
+    TS-->>TC: updatedTask
+    TC-->>C: 200 OK
+
+    TC-)NS: notifyTaskCompleted(task)
+    Note over NS: @Async — runs on TaskFlow-Async thread pool`;
+
+/* ════════════════════════════════════════════════════════════════
+   3. USE CASE DIAGRAM
+   ════════════════════════════════════════════════════════════════ */
+const usecaseSrc = `flowchart LR
+    DEV[/"👤 Developer"/]
+    MGR[/"👤 Manager · Admin"/]
+    SYS[/"⚙ System"/]
+
+    subgraph SYSTEM["  TaskFlow System  "]
+        direction TB
+
+        subgraph TASKS["Task Operations"]
+            UC1("View tasks & filter by status")
+            UC2("Create task")
+            UC3("Update task fields")
+            UC4("Transition task status")
+            UC5("Add comment")
+            UC6("Delete own task")
+        end
+
+        subgraph MGMT["Management Operations"]
+            UC7("Assign task to user")
+            UC8("Delete any task")
+            UC9("View analytics dashboard")
+            UC10("Manage users")
+        end
+
+        subgraph AUTO["Automated Behaviour"]
+            UC11("Send async notifications")
+            UC12("Cache tasks in memory")
+        end
+    end
+
+    DEV --> UC1
+    DEV --> UC2
+    DEV --> UC3
+    DEV --> UC4
+    DEV --> UC5
+    DEV --> UC6
+
+    MGR --> UC1
+    MGR --> UC2
+    MGR --> UC3
+    MGR --> UC4
+    MGR --> UC5
+    MGR --> UC7
+    MGR --> UC8
+    MGR --> UC9
+    MGR --> UC10
+
+    SYS --> UC11
+    SYS --> UC12`;
+
+/* ════════════════════════════════════════════════════════════════
+   4. COMPONENT DIAGRAM
+   ════════════════════════════════════════════════════════════════ */
+const componentSrc = `flowchart TB
+    HTTP["🌐 HTTP Clients"]
+
+    subgraph SPRING["  Spring Boot Application  port 8080  "]
+        direction TB
+
+        subgraph CTRL["Controller Layer"]
+            direction LR
+            TaskCtrl["TaskController\n/api/tasks"]
+            UserCtrl["UserController\n/api/users"]
+            AnalCtrl["AnalyticsController\n/api/analytics"]
+        end
+
+        subgraph SVC["Service Layer"]
+            direction LR
+            TaskSvc["TaskService\nbusiness logic + auth"]
+            UserSvc["UserService\nuser management"]
+            AnalSvc["AnalyticsService\nstream aggregation"]
+            NotiSvc["NotificationService\n@Async"]
+        end
+
+        subgraph REPO["Repository Layer — Spring Data JPA"]
+            direction LR
+            TaskRepo["TaskRepository\nJpaRepository"]
+            UserRepo["UserRepository\nJpaRepository"]
+            CmtRepo["CommentRepository\nJpaRepository"]
+        end
+
+        subgraph CROSS["Cross-cutting Concerns"]
+            direction LR
+            GEH["GlobalExceptionHandler\n@RestControllerAdvice"]
+            Cache["TaskCache\nConcurrentHashMap"]
+            AsyncCfg["AsyncConfig\nThreadPoolTaskExecutor"]
+            Act["/actuator\nhealth · metrics"]
+        end
+    end
+
+    subgraph DATA["Data Layer"]
+        PG[("PostgreSQL 16\ntaskflow database")]
+    end
+
+    HTTP -->|"JSON / REST"| CTRL
+    TaskCtrl --> TaskSvc
+    UserCtrl --> UserSvc
+    AnalCtrl --> AnalSvc
+
+    TaskSvc --> TaskRepo
+    TaskSvc --> UserRepo
+    TaskSvc --> CmtRepo
+    TaskSvc -->|"fire & forget"| NotiSvc
+    TaskSvc -.->|"read / write"| Cache
+    NotiSvc -.->|"thread pool"| AsyncCfg
+    UserSvc --> UserRepo
+    AnalSvc --> TaskRepo
+
+    REPO -->|"JDBC"| PG
+    GEH -.->|"advises"| CTRL`;
+
+/* ════════════════════════════════════════════════════════════════
+   5. DEPLOYMENT DIAGRAM
+   ════════════════════════════════════════════════════════════════ */
+const deploymentSrc = `flowchart TB
+    DEV["💻 Developer Machine / CI"]
+
+    subgraph COMPOSE["  Docker Compose Environment  "]
+        direction LR
+
+        subgraph APPC["app container\nopenjdk:17"]
+            JVM["JVM 17"]
+            JAR["taskflow-1.0.0.jar"]
+            PORT_APP(["port 8080"])
+            JVM --> JAR --> PORT_APP
+        end
+
+        subgraph DBC["postgres container\npostgres:16-alpine"]
+            PG[("PostgreSQL 16")]
+            PGDB["db: taskflow\nuser: taskflow"]
+            PORT_DB(["port 5432"])
+            PG --> PGDB --> PORT_DB
+        end
+
+        APPC -->|"JDBC :5432\nhealthcheck pg_isready"| DBC
+    end
+
+    subgraph ENV["Environment Variables (injected)"]
+        direction LR
+        EV1["SPRING_DATASOURCE_URL"]
+        EV2["SPRING_DATASOURCE_USERNAME"]
+        EV3["SPRING_DATASOURCE_PASSWORD"]
+    end
+
+    subgraph OBS["Observability"]
+        ACT["/actuator/health\n/actuator/metrics"]
+    end
+
+    subgraph CFG["application.yml overrides"]
+        direction LR
+        POOL["async pool\ncore=5 max=10 queue=100"]
+        DDL["jpa.ddl-auto\ncreate-drop"]
+        SQL["sql.init.mode\nalways"]
+    end
+
+    DEV -->|"HTTP :8080"| PORT_APP
+    ENV -.->|"startup injection"| APPC
+    APPC -->|"exposes"| OBS
+    CFG -.->|"configures"| APPC`;
+
+/* ════════════════════════════════════════════════════════════════
+   RENDER ALL
+   ════════════════════════════════════════════════════════════════ */
+await render('class',      classSrc);
+await render('seq1',       seq1Src);
+await render('seq2',       seq2Src);
+await render('usecase',    usecaseSrc);
+await render('component',  componentSrc);
+await render('deployment', deploymentSrc);
+</script>
+
+</body>
+</html>

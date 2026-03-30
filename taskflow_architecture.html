@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TaskFlow — Architecture Overview</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #f5f4f0;
+      color: #1a1a18;
+      min-height: 100vh;
+      padding: 40px 24px 60px;
+    }
+
+    header {
+      max-width: 860px;
+      margin: 0 auto 36px;
+    }
+
+    header h1 {
+      font-size: 26px;
+      font-weight: 600;
+      letter-spacing: -0.4px;
+      color: #1a1a18;
+    }
+
+    header p {
+      margin-top: 6px;
+      font-size: 15px;
+      color: #6b6a63;
+      line-height: 1.6;
+    }
+
+    .card {
+      background: #ffffff;
+      border: 1px solid rgba(0,0,0,0.08);
+      border-radius: 16px;
+      padding: 32px 28px;
+      max-width: 860px;
+      margin: 0 auto 28px;
+    }
+
+    .card h2 {
+      font-size: 13px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #9b9a92;
+      margin-bottom: 20px;
+    }
+
+    svg text { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+
+    /* Legend */
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px 24px;
+      margin-top: 16px;
+      padding-top: 16px;
+      border-top: 1px solid rgba(0,0,0,0.07);
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      color: #4a4a46;
+    }
+
+    .legend-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 3px;
+      flex-shrink: 0;
+    }
+
+    /* Info grid */
+    .info-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 16px;
+    }
+
+    .info-box {
+      background: #faf9f6;
+      border: 1px solid rgba(0,0,0,0.07);
+      border-radius: 10px;
+      padding: 14px 16px;
+    }
+
+    .info-box h3 {
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      color: #9b9a92;
+      margin-bottom: 8px;
+    }
+
+    .info-box ul {
+      list-style: none;
+      font-size: 13.5px;
+      color: #3d3d3a;
+      line-height: 1.7;
+    }
+
+    .info-box ul li::before {
+      content: "·  ";
+      color: #b0afa8;
+    }
+
+    /* State machine */
+    .states {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 0;
+      font-size: 13.5px;
+    }
+
+    .state {
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-weight: 500;
+      white-space: nowrap;
+    }
+
+    .arrow-sep {
+      color: #b0afa8;
+      padding: 0 4px;
+      font-size: 16px;
+    }
+
+    .state-todo       { background: #f1efe8; color: #5f5e5a; }
+    .state-inprogress { background: #e6f1fb; color: #185fa5; }
+    .state-inreview   { background: #eeedfe; color: #534ab7; }
+    .state-completed  { background: #eaf3de; color: #3b6d11; }
+    .state-cancelled  { background: #fcebeb; color: #a32d2d; }
+
+    .cancel-note {
+      margin-top: 10px;
+      font-size: 12.5px;
+      color: #9b9a92;
+    }
+
+    /* API table */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13.5px;
+    }
+
+    thead th {
+      text-align: left;
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      color: #9b9a92;
+      padding: 0 10px 10px 0;
+      border-bottom: 1px solid rgba(0,0,0,0.08);
+    }
+
+    tbody td {
+      padding: 9px 10px 9px 0;
+      border-bottom: 1px solid rgba(0,0,0,0.05);
+      vertical-align: top;
+      color: #3d3d3a;
+      line-height: 1.5;
+    }
+
+    tbody tr:last-child td { border-bottom: none; }
+
+    .method {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 2px 7px;
+      border-radius: 4px;
+      letter-spacing: 0.05em;
+      white-space: nowrap;
+    }
+
+    .get    { background: #e6f1fb; color: #185fa5; }
+    .post   { background: #eaf3de; color: #3b6d11; }
+    .put    { background: #eeedfe; color: #534ab7; }
+    .patch  { background: #faeeda; color: #854f0b; }
+    .delete { background: #fcebeb; color: #a32d2d; }
+
+    code {
+      font-family: "SF Mono", "Fira Code", Menlo, monospace;
+      font-size: 12.5px;
+      background: #f1efe8;
+      padding: 1px 5px;
+      border-radius: 4px;
+      color: #3d3d3a;
+    }
+
+    footer {
+      max-width: 860px;
+      margin: 8px auto 0;
+      font-size: 12px;
+      color: #b0afa8;
+      text-align: center;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      body { background: #1a1a18; color: #e0dfd6; }
+      .card { background: #242422; border-color: rgba(255,255,255,0.08); }
+      .info-box { background: #1e1e1c; border-color: rgba(255,255,255,0.07); }
+      .info-box ul { color: #c2c0b6; }
+      header h1 { color: #e0dfd6; }
+      header p { color: #9b9a92; }
+      .legend-item { color: #c2c0b6; }
+      tbody td { color: #c2c0b6; border-bottom-color: rgba(255,255,255,0.06); }
+      thead th { border-bottom-color: rgba(255,255,255,0.1); }
+      code { background: #2e2e2b; color: #c2c0b6; }
+      .state-todo       { background: #2c2c2a; color: #b4b2a9; }
+      .state-inprogress { background: #0c447c; color: #b5d4f4; }
+      .state-inreview   { background: #3c3489; color: #ceabf6; }
+      .state-completed  { background: #27500a; color: #c0dd97; }
+      .state-cancelled  { background: #791f1f; color: #f7c1c1; }
+      .cancel-note { color: #6b6a63; }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>TaskFlow — Architecture Overview</h1>
+    <p>Enterprise task management REST API · Spring Boot 3.2 · Java 17 · PostgreSQL 16</p>
+  </header>
+
+  <!-- Architecture diagram -->
+  <div class="card">
+    <h2>Layered architecture</h2>
+    <svg width="100%" viewBox="0 0 680 580" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+          <path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </marker>
+      </defs>
+
+      <!-- HTTP clients -->
+      <rect x="260" y="16" width="160" height="36" rx="8" fill="#d3d1c7" stroke="#888780" stroke-width="0.5"/>
+      <text x="340" y="34" text-anchor="middle" dominant-baseline="central" font-size="14" font-weight="500" fill="#2c2c2a">HTTP clients</text>
+      <line x1="340" y1="52" x2="340" y2="80" stroke="#888780" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+      <!-- Controller layer -->
+      <rect x="40" y="82" width="600" height="72" rx="12" fill="#EEEDFE" stroke="#534AB7" stroke-width="0.5"/>
+      <text x="340" y="100" text-anchor="middle" dominant-baseline="central" font-size="14" font-weight="500" fill="#26215C">Controller layer · /api/*</text>
+      <rect x="60" y="110" width="160" height="32" rx="6" fill="#CECBF6" stroke="#534AB7" stroke-width="0.5"/>
+      <text x="140" y="126" text-anchor="middle" dominant-baseline="central" font-size="12" fill="#3C3489">TaskController</text>
+      <rect x="260" y="110" width="160" height="32" rx="6" fill="#CECBF6" stroke="#534AB7" stroke-width="0.5"/>
+      <text x="340" y="126" text-anchor="middle" dominant-baseline="central" font-size="12" fill="#3C3489">UserController</text>
+      <rect x="460" y="110" width="160" height="32" rx="6" fill="#CECBF6" stroke="#534AB7" stroke-width="0.5"/>
+      <text x="540" y="126" text-anchor="middle" dominant-baseline="central" font-size="12" fill="#3C3489">AnalyticsController</text>
+
+      <line x1="340" y1="154" x2="340" y2="182" stroke="#888780" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+      <!-- Service layer -->
+      <rect x="40" y="184" width="600" height="72" rx="12" fill="#E1F5EE" stroke="#0F6E56" stroke-width="0.5"/>
+      <text x="340" y="202" text-anchor="middle" dominant-baseline="central" font-size="14" font-weight="500" fill="#04342C">Service layer</text>
+      <rect x="60" y="212" width="140" height="32" rx="6" fill="#9FE1CB" stroke="#0F6E56" stroke-width="0.5"/>
+      <text x="130" y="228" text-anchor="middle" dominant-baseline="central" font-size="12" fill="#085041">TaskService</text>
+      <rect x="220" y="212" width="140" height="32" rx="6" fill="#9FE1CB" stroke="#0F6E56" stroke-width="0.5"/>
+      <text x="290" y="228" text-anchor="middle" dominant-baseline="central" font-size="12" fill="#085041">UserService</text>
+      <rect x="380" y="212" width="140" height="32" rx="6" fill="#9FE1CB" stroke="#0F6E56" stroke-width="0.5"/>
+      <text x="450" y="228" text-anchor="middle" dominant-baseline="central" font-size="12" fill="#085041">AnalyticsService</text>
+      <rect x="530" y="212" width="100" height="32" rx="6" fill="#9FE1CB" stroke="#0F6E56" stroke-width="0.5"/>
+      <text x="580" y="228" text-anchor="middle" dominant-baseline="central" font-size="12" fill="#085041">NotificationSvc</text>
+
+      <line x1="340" y1="256" x2="340" y2="284" stroke="#888780" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+      <!-- Repository layer -->
+      <rect x="40" y="286" width="600" height="72" rx="12" fill="#E6F1FB" stroke="#185FA5" stroke-width="0.5"/>
+      <text x="340" y="304" text-anchor="middle" dominant-baseline="central" font-size="14" font-weight="500" fill="#042C53">Repository layer · Spring Data JPA</text>
+      <rect x="60" y="314" width="160" height="32" rx="6" fill="#B5D4F4" stroke="#185FA5" stroke-width="0.5"/>
+      <text x="140" y="330" text-anchor="middle" dominant-baseline="central" font-size="12" fill="#0C447C">TaskRepository</text>
+      <rect x="260" y="314" width="160" height="32" rx="6" fill="#B5D4F4" stroke="#185FA5" stroke-width="0.5"/>
+      <text x="340" y="330" text-anchor="middle" dominant-baseline="central" font-size="12" fill="#0C447C">UserRepository</text>
+      <rect x="460" y="314" width="160" height="32" rx="6" fill="#B5D4F4" stroke="#185FA5" stroke-width="0.5"/>
+      <text x="540" y="330" text-anchor="middle" dominant-baseline="central" font-size="12" fill="#0C447C">CommentRepository</text>
+
+      <line x1="340" y1="358" x2="340" y2="386" stroke="#888780" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+      <!-- Domain model -->
+      <rect x="40" y="388" width="600" height="72" rx="12" fill="#FAEEDA" stroke="#854F0B" stroke-width="0.5"/>
+      <text x="340" y="406" text-anchor="middle" dominant-baseline="central" font-size="14" font-weight="500" fill="#412402">Domain model · JPA entities</text>
+      <rect x="60" y="414" width="90" height="32" rx="6" fill="#FAC775" stroke="#854F0B" stroke-width="0.5"/>
+      <text x="105" y="430" text-anchor="middle" dominant-baseline="central" font-size="12" fill="#633806">Task</text>
+      <rect x="168" y="414" width="90" height="32" rx="6" fill="#FAC775" stroke="#854F0B" stroke-width="0.5"/>
+      <text x="213" y="430" text-anchor="middle" dominant-baseline="central" font-size="12" fill="#633806">User</text>
+      <rect x="276" y="414" width="90" height="32" rx="6" fill="#FAC775" stroke="#854F0B" stroke-width="0.5"/>
+      <text x="321" y="430" text-anchor="middle" dominant-baseline="central" font-size="12" fill="#633806">Comment</text>
+      <rect x="384" y="414" width="90" height="32" rx="6" fill="#FAC775" stroke="#854F0B" stroke-width="0.5"/>
+      <text x="429" y="430" text-anchor="middle" dominant-baseline="central" font-size="12" fill="#633806">SubTask</text>
+      <rect x="492" y="414" width="130" height="32" rx="6" fill="#FAC775" stroke="#854F0B" stroke-width="0.5"/>
+      <text x="557" y="430" text-anchor="middle" dominant-baseline="central" font-size="12" fill="#633806">BaseEntity</text>
+
+      <line x1="340" y1="460" x2="340" y2="488" stroke="#888780" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+      <!-- PostgreSQL -->
+      <rect x="200" y="490" width="280" height="44" rx="8" fill="#d3d1c7" stroke="#888780" stroke-width="0.5"/>
+      <text x="340" y="512" text-anchor="middle" dominant-baseline="central" font-size="14" font-weight="500" fill="#2c2c2a">PostgreSQL · taskflow db</text>
+
+      <!-- Cross-cutting -->
+      <rect x="40" y="490" width="140" height="44" rx="8" fill="#FAECE7" stroke="#993C1D" stroke-width="0.5"/>
+      <text x="110" y="504" text-anchor="middle" dominant-baseline="central" font-size="13" font-weight="500" fill="#4A1B0C">Exception</text>
+      <text x="110" y="522" text-anchor="middle" dominant-baseline="central" font-size="11" fill="#713B13">GlobalExceptionHandler</text>
+
+      <rect x="500" y="490" width="140" height="44" rx="8" fill="#FAECE7" stroke="#993C1D" stroke-width="0.5"/>
+      <text x="570" y="504" text-anchor="middle" dominant-baseline="central" font-size="13" font-weight="500" fill="#4A1B0C">Util</text>
+      <text x="570" y="522" text-anchor="middle" dominant-baseline="central" font-size="11" fill="#713B13">TaskCache · ValidationUtils</text>
+    </svg>
+
+    <div class="legend">
+      <div class="legend-item"><div class="legend-dot" style="background:#CECBF6;border:1px solid #534AB7"></div>Controllers</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#9FE1CB;border:1px solid #0F6E56"></div>Services</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#B5D4F4;border:1px solid #185FA5"></div>Repositories</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#FAC775;border:1px solid #854F0B"></div>Domain model</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#F0997B;border:1px solid #993C1D"></div>Cross-cutting</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#d3d1c7;border:1px solid #888780"></div>Infrastructure</div>
+    </div>
+  </div>
+
+  <!-- Tech stack + key patterns -->
+  <div class="card">
+    <h2>Tech stack &amp; key patterns</h2>
+    <div class="info-grid">
+      <div class="info-box">
+        <h3>Core dependencies</h3>
+        <ul>
+          <li>Spring Boot 3.2</li>
+          <li>Spring Data JPA</li>
+          <li>Spring Validation</li>
+          <li>Spring Actuator</li>
+          <li>PostgreSQL 16</li>
+          <li>Lombok</li>
+        </ul>
+      </div>
+      <div class="info-box">
+        <h3>Auth &amp; security</h3>
+        <ul>
+          <li>Identity via X-User-Id header</li>
+          <li>Roles: ADMIN, MANAGER, USER</li>
+          <li>Only creator/assignee can edit</li>
+          <li>Only ADMIN/MANAGER can assign</li>
+          <li>No JWT / session (stateless)</li>
+        </ul>
+      </div>
+      <div class="info-box">
+        <h3>Async &amp; caching</h3>
+        <ul>
+          <li>AsyncConfig thread pool</li>
+          <li>Core pool: 5, Max: 10</li>
+          <li>Queue capacity: 100</li>
+          <li>In-memory TaskCache</li>
+          <li>Notifications via async</li>
+        </ul>
+      </div>
+      <div class="info-box">
+        <h3>Testing</h3>
+        <ul>
+          <li>TaskServiceTest (unit)</li>
+          <li>AnalyticsServiceTest (unit)</li>
+          <li>TaskStatusTest (state machine)</li>
+          <li>test_api.sh (e2e shell)</li>
+          <li>Surefire reports included</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- Task state machine -->
+  <div class="card">
+    <h2>Task status state machine</h2>
+    <div class="states">
+      <span class="state state-todo">TODO</span>
+      <span class="arrow-sep">→</span>
+      <span class="state state-inprogress">IN_PROGRESS</span>
+      <span class="arrow-sep">→</span>
+      <span class="state state-inreview">IN_REVIEW</span>
+      <span class="arrow-sep">→</span>
+      <span class="state state-completed">COMPLETED</span>
+    </div>
+    <p class="cancel-note">
+      <span class="state state-cancelled" style="display:inline-block;padding:4px 12px;border-radius:20px;font-size:13px;font-weight:500;">CANCELLED</span>
+      &nbsp;reachable from any non-terminal state &nbsp;·&nbsp;
+      IN_REVIEW can step back to IN_PROGRESS &nbsp;·&nbsp;
+      COMPLETED and CANCELLED are terminal
+    </p>
+  </div>
+
+  <!-- API endpoints -->
+  <div class="card">
+    <h2>API endpoints</h2>
+    <table>
+      <thead>
+        <tr>
+          <th style="width:90px">Method</th>
+          <th style="width:260px">Path</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td><span class="method get">GET</span></td><td><code>/api/tasks</code></td><td>List all tasks, optional <code>?status=</code> filter</td></tr>
+        <tr><td><span class="method get">GET</span></td><td><code>/api/tasks/{id}</code></td><td>Get task by ID</td></tr>
+        <tr><td><span class="method get">GET</span></td><td><code>/api/tasks/assignee/{userId}</code></td><td>Tasks assigned to a user</td></tr>
+        <tr><td><span class="method get">GET</span></td><td><code>/api/tasks/overdue</code></td><td>All overdue tasks</td></tr>
+        <tr><td><span class="method post">POST</span></td><td><code>/api/tasks</code></td><td>Create task · requires <code>X-User-Id</code> header</td></tr>
+        <tr><td><span class="method put">PUT</span></td><td><code>/api/tasks/{id}</code></td><td>Update task fields (title, desc, priority, due date)</td></tr>
+        <tr><td><span class="method patch">PATCH</span></td><td><code>/api/tasks/{id}/status</code></td><td>Transition task status</td></tr>
+        <tr><td><span class="method patch">PATCH</span></td><td><code>/api/tasks/{id}/assign</code></td><td>Assign task to user · MANAGER or ADMIN only</td></tr>
+        <tr><td><span class="method post">POST</span></td><td><code>/api/tasks/{id}/comments</code></td><td>Add comment to task</td></tr>
+        <tr><td><span class="method delete">DELETE</span></td><td><code>/api/tasks/{id}</code></td><td>Delete task · creator or ADMIN only</td></tr>
+        <tr><td><span class="method get">GET</span></td><td><code>/api/analytics/dashboard</code></td><td>Full summary: counts, rates, top assignees</td></tr>
+        <tr><td><span class="method get">GET</span></td><td><code>/api/analytics/status</code></td><td>Task count grouped by status</td></tr>
+        <tr><td><span class="method get">GET</span></td><td><code>/api/analytics/priority</code></td><td>Task count grouped by priority</td></tr>
+        <tr><td><span class="method get">GET</span></td><td><code>/api/users</code></td><td>User management endpoints</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <footer>Generated from taskflow.zip · March 2026</footer>
+
+</body>
+</html>
